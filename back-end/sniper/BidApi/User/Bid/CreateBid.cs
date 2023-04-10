@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using Microsoft.Azure.Cosmos;
 using sniper_domain.Requests;
 
@@ -26,16 +25,18 @@ public static class CreateBid
         var request = JsonConvert.DeserializeObject<CreateBidRequest>(content);
         var container = cosmosclient.GetContainer(Constants.UserDatabaseName, Constants.UserCollectionName);
 
-        var user = await container.ReadItemAsync<UserEntity>(userId, new PartitionKey(userId));
+        try
+        {
+            var user = await container.ReadItemAsync<UserEntity>(userId, new PartitionKey(userId));
 
-        if (user == null)
+            user.Resource.Bids.Add(new EbayBidEntity(request));
+            await container.ReplaceItemAsync<UserEntity>(user, user.Resource.Id.ToString(), new PartitionKey(user.Resource.Id.ToString()));
+
+            return new OkResult();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return new NotFoundObjectResult($"User with id {userId} not found");
         }
-
-        user.Resource.Bids.Add(new EbayBidEntity(request));
-        await container.ReplaceItemAsync<UserEntity>(user, user.Resource.Id.ToString(), new PartitionKey(user.Resource.Id.ToString()));
-
-        return new OkResult();
     }
 }
