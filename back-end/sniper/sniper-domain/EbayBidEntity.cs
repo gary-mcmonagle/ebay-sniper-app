@@ -1,14 +1,27 @@
-﻿namespace sniper_domain;
+﻿using Newtonsoft.Json;
+using sniper_domain.Requests;
 
-public class EbayBidEntity
+namespace sniper_domain;
+
+public class EbayBidEntity : BaseEntity
 {
-    public EbayBidEntity(string ebayItemId, double bidAmount)
+    [JsonConstructor]
+    public EbayBidEntity(string ebayItemId, double bidAmount) : base()
     {
-		EbayItemId = ebayItemId;
-		BidAmount = bidAmount;
+        EbayItemId = ebayItemId;
+        BidAmount = bidAmount;
     }
 
+    public EbayBidEntity(CreateBidRequest request) : base()
+    {
+        EbayItemId = request.EbayItemId;
+        BidAmount = request.BidAmount;
+    }
+
+    [JsonProperty("ebayItemId")]
     public string EbayItemId { get; set; }
-	public double BidAmount { get; set; }
+
+    [JsonProperty("bidAmount")]
+    public double BidAmount { get; set; }
 }
 
